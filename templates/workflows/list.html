@@ -1,40 +1,40 @@
 ﻿{% extends 'base.html' %}
-{% block title %}Workflows вЂ” API Automation Studio{% endblock %}
+{% block title %}Сценарии — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>Workflows</h1>
-  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Create Workflow</a>
+  <h1>Сценарии</h1>
+  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
 </div>
 
 {% if workflows %}
 <div class="card-grid">
   {% for item in workflows %}
-  <div class="card">
+  <div class="card reveal">
     <div class="card-head">
       <h3 class="card-title">{{ item.workflow.name }}</h3>
       {% if item.workflow.is_active %}
-      <span class="status status-active">в—Џ Active</span>
+      <span class="status status-active">Активен</span>
       {% else %}
-      <span class="status status-inactive">в—‹ Disabled</span>
+      <span class="status status-inactive">Отключён</span>
       {% endif %}
     </div>
-    <p class="card-desc muted">{{ item.workflow.description|default:'No description' }}</p>
+    <p class="card-desc muted">{{ item.workflow.description|default:'Без описания' }}</p>
     <div class="card-stats mono">
-      <span>{{ item.execution_count }} executions</span>
-      <span>Last run: {% if item.last_run %}{{ item.last_run|timesince }} ago{% else %}never{% endif %}</span>
+      <span>{{ item.execution_count }} запусков</span>
+      <span>Последний: {% if item.last_run %}{{ item.last_run|timesince }} назад{% else %}никогда{% endif %}</span>
     </div>
     <div class="card-actions">
-      <a href="{% url 'workflow_detail' item.workflow.pk %}" class="btn btn-ghost btn-sm">Open</a>
-      <a href="{% url 'workflow_edit' item.workflow.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+      <a href="{% url 'workflow_detail' item.workflow.pk %}" class="btn btn-ghost btn-sm">Открыть</a>
+      <a href="{% url 'workflow_edit' item.workflow.pk %}" class="btn btn-ghost btn-sm">Редактировать</a>
     </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
 <div class="empty-state">
-  <p class="empty-title">No workflows yet</p>
-  <p class="empty-text">Create your first automation.</p>
-  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Create Workflow</a>
+  <p class="empty-title">Пока нет сценариев</p>
+  <p class="empty-text">Создайте первую автоматизацию.</p>
+  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
 </div>
 {% endif %}
 {% endblock %}

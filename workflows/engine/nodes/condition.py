@@ -1,25 +1,15 @@
 class StopWorkflow(Exception):
-    """Raised when a Condition evaluates to False — remaining nodes are skipped."""
+    """Поднимается, когда Condition не выполнен — остальные узлы пропускаются."""
 
 
 def execute_condition(config, context):
-    from ..conditions import evaluate_condition
+    from ..conditions import evaluate_conditions
 
     conditions = config.get('conditions') or []
-    if not conditions:
-        raise ValueError('Condition: no conditions configured')
+    logic = (config.get('logic') or 'AND').upper()
 
-    for condition in conditions:
-        result = evaluate_condition(
-            condition.get('left', ''),
-            condition.get('operator', '='),
-            condition.get('right', ''),
-            context,
-        )
-        if not result:
-            raise StopWorkflow(
-                f'Condition failed: {condition.get("left", "")} '
-                f'{condition.get("operator", "=")} {condition.get("right", "")}'
-            )
+    matched = evaluate_conditions(conditions, logic, context)
+    if not matched:
+        raise StopWorkflow('Условие не выполнено')
 
-    return {'matched': True}
+    return {'matched': True, 'logic': logic}

@@ -7,9 +7,11 @@
       <span class="node-desc">{{ node.name }}</span>
     </div>
     {% if node.node_type == 'condition' and node.configuration.conditions %}
-      <span class="node-expr">{{ node.configuration.conditions.0.left }} {{ node.configuration.conditions.0.operator }} {{ node.configuration.conditions.0.right }}</span>
+      <span class="node-expr">{{ node.configuration.logic|default:'AND' }}: {{ node.configuration.conditions.0.left }} {{ node.configuration.conditions.0.operator }} {{ node.configuration.conditions.0.right }}{% if node.configuration.conditions.1 %} + {{ node.configuration.conditions.1.left }} {{ node.configuration.conditions.1.operator }} {{ node.configuration.conditions.1.right }}{% endif %}</span>
     {% elif node.node_type == 'http' %}
-      <span class="node-expr">{{ node.configuration.method|default:'GET' }} {{ node.configuration.url }}</span>
+      <span class="node-expr">{{ node.configuration.method|default:'GET' }} {{ node.configuration.url }}{% if node.configuration.retry.max_attempts > 1 %} · retry ×{{ node.configuration.retry.max_attempts }}{% endif %}</span>
+    {% elif node.node_type == 'transform' %}
+      <span class="node-expr">→ {{ node.configuration.mapping|length }} полей</span>
     {% elif node.node_type == 'webhook' %}
       <span class="node-expr">POST /webhooks/{{ workflow.webhook_token|slice:':8' }}…/</span>
     {% endif %}
@@ -17,6 +19,6 @@
   {% if not forloop.last %}<div class="pipe-link mono"><span class="pipe-arrow">│<br>▼</span></div>{% endif %}
   {% endfor %}
   {% if not nodes %}
-  <p class="empty-text">No steps yet.</p>
+  <p class="empty-text">Шагов пока нет.</p>
   {% endif %}
 </div>

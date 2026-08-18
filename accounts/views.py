@@ -1,8 +1,13 @@
 from django.contrib.auth import login
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView
+from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect, render
 
-from .forms import RegisterForm
+from .forms import (
+    LoginForm,
+    RegisterForm,
+    StudioPasswordResetForm,
+    StudioSetPasswordForm,
+)
 
 
 def landing(request):
@@ -25,16 +30,24 @@ def register(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
-class StudioLoginView(LoginView):
+class StudioLoginView(auth_views.LoginView):
     template_name = 'accounts/login.html'
+    authentication_form = LoginForm
 
 
-class StudioLogoutView(LogoutView):
+class StudioLogoutView(auth_views.LogoutView):
     next_page = 'landing'
 
 
-class StudioPasswordResetView(PasswordResetView):
+class StudioPasswordResetView(auth_views.PasswordResetView):
     template_name = 'accounts/password_reset.html'
+    form_class = StudioPasswordResetForm
     subject_template_name = 'accounts/password_reset_subject.txt'
     email_template_name = 'accounts/password_reset_email.txt'
     success_url = '/accounts/password-reset/done/'
+
+
+class StudioPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'accounts/password_reset_confirm.html'
+    form_class = StudioSetPasswordForm
+    success_url = '/accounts/password-reset/complete/'

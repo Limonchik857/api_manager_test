@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
-{% block title %}Configure step — API Automation Studio{% endblock %}
+{% block title %}Настройка шага — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>{% if node %}Edit{% else %}Add{% endif %} step</h1>
-  <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">← Back to workflow</a>
+  <h1>{% if node %}Настройка шага{% else %}Добавление шага{% endif %}</h1>
+  <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">← К сценарию</a>
 </div>
 <div class="panel panel-narrow">
   <form method="post">
     {% csrf_token %}
     {% include 'workflows/_form_fields.html' with form=form %}
     <div class="form-actions">
-      <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">Cancel</a>
-      <button type="submit" class="btn btn-primary">Save step</button>
+      <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">Отмена</a>
+      <button type="submit" class="btn btn-primary">Сохранить шаг</button>
     </div>
   </form>
 </div>

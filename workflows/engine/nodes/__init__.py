@@ -1,10 +1,11 @@
-from . import http, telegram, condition, webhook
+from . import http, telegram, condition, webhook, transform
 
 NODE_HANDLERS = {
     'webhook': webhook.execute_webhook,
     'condition': condition.execute_condition,
     'http': http.execute_http,
     'telegram': telegram.execute_telegram,
+    'transform': transform.execute_transform,
 }
 
 

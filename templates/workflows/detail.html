@@ -1,42 +1,54 @@
 ﻿{% extends 'base.html' %}
-{% block title %}{{ workflow.name }} вЂ” API Automation Studio{% endblock %}
+{% block title %}{{ workflow.name }} — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
     <h1>{{ workflow.name }}</h1>
     {% if workflow.is_active %}
-    <span class="status status-active">в—Џ Active</span>
+    <span class="status status-active">Активен</span>
     {% else %}
-    <span class="status status-inactive">в—‹ Disabled</span>
+    <span class="status status-inactive">Отключён</span>
     {% endif %}
   </div>
   <div class="head-actions">
-    <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">Edit</a>
+    <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">Редактировать</a>
     <form method="post" action="{% url 'workflow_toggle' workflow.pk %}">
       {% csrf_token %}
       {% if workflow.is_active %}
-      <button type="submit" class="btn btn-ghost">Disable</button>
+      <button type="submit" class="btn btn-ghost">Отключить</button>
       {% else %}
-      <button type="submit" class="btn btn-ghost">Enable</button>
+      <button type="submit" class="btn btn-ghost">Включить</button>
       {% endif %}
     </form>
-    <form method="post" action="{% url 'workflow_delete' workflow.pk %}" onsubmit="return confirm('Delete this workflow and all its executions?')">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-danger">Delete</button>
-    </form>
+    <button type="button" class="btn btn-danger" data-modal-open="delete-workflow">Удалить</button>
+  </div>
+</div>
+
+<div class="modal" id="delete-workflow" hidden>
+  <div class="modal-backdrop" data-modal-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+    <h2 id="delete-title">Удалить сценарий «{{ workflow.name }}»?</h2>
+    <p class="modal-text">Сценарий и вся история его запусков будут удалены безвозвратно.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-modal-close>Отмена</button>
+      <form method="post" action="{% url 'workflow_delete' workflow.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Удалить</button>
+      </form>
+    </div>
   </div>
 </div>
 
 <section class="section">
   <h2 class="section-title">Webhook</h2>
   <div class="panel">
-    <p class="form-help">Send a POST request with a JSON body to this URL to trigger the workflow:</p>
+    <p class="form-help">Отправьте POST-запрос с JSON-телом на этот URL, чтобы запустить сценарий:</p>
     <div class="webhook-row">
       <code class="webhook-url mono" id="webhook-url">{{ workflow.webhook_url }}</code>
-      <button type="button" class="btn-copy" data-copy="#webhook-url">copy</button>
+      <button type="button" class="btn-copy" data-copy="#webhook-url">копировать</button>
       <form method="post" action="{% url 'workflow_regenerate_webhook' workflow.pk %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-ghost btn-sm">Regenerate</button>
+        <button type="submit" class="btn btn-ghost btn-sm">Сменить URL</button>
       </form>
     </div>
     <div class="webhook-row">
@@ -46,14 +58,14 @@
 </section>
 
 <section class="section">
-  <h2 class="section-title">Workflow</h2>
+  <h2 class="section-title">Сценарий</h2>
   {% include 'workflows/_pipeline.html' with nodes=nodes node_type_labels=node_type_labels %}
 </section>
 
 <section class="section">
-  <h2 class="section-title">Run test</h2>
+  <h2 class="section-title">Тестовый запуск</h2>
   <div class="panel">
-    <p class="form-help">Send a JSON payload through this workflow right now.</p>
+    <p class="form-help">Отправьте JSON-данные через весь сценарий прямо сейчас.</p>
     <form method="post" action="{% url 'workflow_run_test' workflow.pk %}">
       {% csrf_token %}
       <label class="form-label" for="payload">Payload</label>
@@ -64,30 +76,30 @@
     "status": "paid"
 }</textarea>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Run test</button>
+        <button type="submit" class="btn btn-primary">Запустить тест</button>
       </div>
     </form>
   </div>
 </section>
 
 <section class="section">
-  <h2 class="section-title">Stats</h2>
+  <h2 class="section-title">Статистика</h2>
   <div class="stat-grid">
     <div class="stat">
       <span class="stat-value mono">{{ workflow.executions.count }}</span>
-      <span class="stat-label">Total executions</span>
+      <span class="stat-label">Всего запусков</span>
     </div>
     <div class="stat">
       <span class="stat-value mono">{{ success_count }}</span>
-      <span class="stat-label">Successful</span>
+      <span class="stat-label">Успешных</span>
     </div>
     <div class="stat">
       <span class="stat-value mono">{{ failed_count }}</span>
-      <span class="stat-label">Failed</span>
+      <span class="stat-label">Ошибок</span>
     </div>
     <div class="stat">
-      <span class="stat-value mono">{{ workflow.created_at|date:'d M Y' }}</span>
-      <span class="stat-label">Created</span>
+      <span class="stat-value mono">{{ workflow.created_at|date:'d.m.Y' }}</span>
+      <span class="stat-label">Создан</span>
     </div>
   </div>
 </section>

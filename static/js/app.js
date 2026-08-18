@@ -91,6 +91,34 @@
     });
   }
 
+  /* ── Modal ───────────────────────────────────────────── */
+  function initModals() {
+    document.querySelectorAll('[data-modal-open]').forEach(function (opener) {
+      opener.addEventListener('click', function () {
+        var modal = document.getElementById(opener.getAttribute('data-modal-open'));
+        if (!modal) return;
+        modal.hidden = false;
+        var focusTarget = modal.querySelector('button, a, input');
+        if (focusTarget) focusTarget.focus();
+        document.body.style.overflow = 'hidden';
+      });
+    });
+    document.querySelectorAll('[data-modal-close]').forEach(function (closer) {
+      closer.addEventListener('click', function () {
+        var modal = closer.closest('.modal');
+        if (modal) modal.hidden = true;
+        document.body.style.overflow = '';
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      document.querySelectorAll('.modal:not([hidden])').forEach(function (modal) {
+        modal.hidden = true;
+      });
+      document.body.style.overflow = '';
+    });
+  }
+
   /* ── Hero live demo ────────────────────────────────── */
   function initHeroDemo() {
     var termBody = document.getElementById('demo-term-body');
@@ -187,6 +215,7 @@
     initReveal();
     initCopyButtons();
     initJsonValidation();
+    initModals();
     initHeroDemo();
   });
 })();

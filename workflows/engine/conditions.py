@@ -3,11 +3,11 @@ class ConditionError(ValueError):
 
 
 def _resolve_operand(value, context):
-    """Operand is either a variable reference (starts with {{ }}) or a literal."""
+    """Операнд — переменная ({{ x }}) или литерал."""
     value = (value or '').strip()
     if value.startswith('{{') and value.endswith('}}'):
-        from .context import render_text
-        return render_text(value, context, fallback=None)
+        from .context import render_value
+        return render_value(value, context)
     return value
 
 
@@ -18,24 +18,16 @@ def _to_number(value):
         return None
 
 
-def evaluate_condition(left, operator, right, context):
-    """Evaluate a single condition against the execution context.
-
-    Supported operators: = != > < >= <= contains exists
-    """
-    operator = (operator or '=').strip()
+def _compare(left_value, right_value, operator):
     if operator == 'exists':
-        return _resolve_operand(left, context) is not None
-
-    left_value = _resolve_operand(left, context)
-    right_value = _resolve_operand(right, context)
+        return left_value is not None
 
     if operator in ('>', '<', '>=', '<='):
         lnum = _to_number(left_value)
         rnum = _to_number(right_value)
         if lnum is None or rnum is None:
             raise ConditionError(
-                f'Cannot compare "{left_value}" with "{right_value}" as numbers'
+                f'Нельзя сравнить "{left_value}" и "{right_value}" как числа'
             )
         if operator == '>':
             return lnum > rnum
@@ -53,4 +45,22 @@ def evaluate_condition(left, operator, right, context):
     if operator == '!=':
         return str(left_value) != str(right_value)
 
-    raise ConditionError(f'Unknown operator: {operator}')
+    raise ConditionError(f'Неизвестный оператор: {operator}')
+
+
+def evaluate_conditions(conditions, logic, context):
+    """AND/OR-логика для списка условий."""
+    if not conditions:
+        raise ConditionError('Condition: не заданы условия')
+
+    results = []
+    for condition in conditions:
+        results.append(_compare(
+            _resolve_operand(condition.get('left', ''), context),
+            _resolve_operand(condition.get('right', ''), context),
+            condition.get('operator', '='),
+        ))
+
+    if logic == 'OR':
+        return any(results)
+    return all(results)

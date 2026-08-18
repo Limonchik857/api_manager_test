@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-{% block title %}API Automation Studio — Automate your work without writing code{% endblock %}
+{% block title %}API Automation Studio — автоматизируйте работу без кода{% endblock %}
 {% block content %}
 <section class="hero">
   <div class="hero-copy">
-    <div class="hero-badge">WORKFLOWS FOR DEVELOPERS</div>
-    <h1 class="hero-title">Automate your work.<br><span class="hot">Without writing code.</span></h1>
-    <p class="hero-sub">Connect APIs, build workflows and automate repetitive tasks.<br>One <code>webhook</code> in — any number of actions out.</p>
+    <div class="hero-badge">АВТОМАТИЗАЦИЯ ДЛЯ РАЗРАБОТЧИКОВ</div>
+    <h1 class="hero-title">Автоматизируйте работу.<br><span class="hot">Без написания кода.</span></h1>
+    <p class="hero-sub">Соединяйте API, стройте сценарии и избавляйтесь от рутины.<br>Один <code>webhook</code> на входе — любые действия на выходе.</p>
     <div class="hero-actions">
-      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Create free workflow</a>
-      <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">Log in</a>
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Создать сценарий</a>
+      <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">Войти</a>
     </div>
   </div>
 
@@ -50,7 +50,7 @@
             <span class="node-type"><span class="node-icon">✉</span>Telegram</span>
             <span class="demo-status mono" style="color:var(--success)"></span>
           </div>
-          <span class="node-expr">message → chat -1001…</span>
+          <span class="node-expr">сообщение → чат -1001…</span>
         </div>
       </div>
       <div class="term-body" id="demo-term-body"></div>
@@ -62,22 +62,22 @@
   <div class="feature reveal">
     <div class="feature-code">trigger</div>
     <h3>Webhook</h3>
-    <p>Every workflow gets a secret URL. Post JSON to it and the automation starts.</p>
+    <p>Каждый сценарий получает секретный URL. Отправьте на него JSON — автоматизация начнётся.</p>
   </div>
   <div class="feature reveal">
     <div class="feature-code">logic</div>
-    <h3>Conditions</h3>
-    <p>IF / ELSE logic with variables from the incoming payload — no code required.</p>
+    <h3>Условия</h3>
+    <p>Логика IF / ELSE с переменными из входящих данных — без единой строчки кода.</p>
   </div>
   <div class="feature reveal">
     <div class="feature-code">action</div>
-    <h3>HTTP &amp; Telegram</h3>
-    <p>Send requests and messages, with {{ variables }} filled from the execution context.</p>
+    <h3>HTTP и Telegram</h3>
+    <p>Запросы и сообщения с переменными <code>{&#123;&#123; }}</code>, подставленными из контекста выполнения.</p>
   </div>
   <div class="feature reveal">
     <div class="feature-code">logs</div>
-    <h3>Full traces</h3>
-    <p>Every run is recorded step by step. You always see which step broke and why.</p>
+    <h3>Полные логи</h3>
+    <p>Каждый запуск записывается по шагам. Всегда видно, какой шаг сломался и почему.</p>
   </div>
 </section>
 {% endblock %}

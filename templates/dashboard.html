@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard — API Automation Studio{% endblock %}
+{% block title %}Панель — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>Dashboard</h1>
-  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Create Workflow</a>
+  <h1>Панель</h1>
+  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
 </div>
 
 <section class="section">
-  <h2 class="section-title">Workflows</h2>
+  <h2 class="section-title">Сценарии</h2>
   {% if workflows %}
   <div class="card-grid">
     {% for item in workflows %}
@@ -15,23 +15,23 @@
       <div class="card-head">
         <h3 class="card-title">{{ item.name }}</h3>
         {% if item.is_active %}
-        <span class="status status-active">Active</span>
+        <span class="status status-active">Активен</span>
         {% else %}
-        <span class="status status-inactive">Disabled</span>
+        <span class="status status-inactive">Отключён</span>
         {% endif %}
       </div>
       <div class="card-stats mono">
-        <span>{{ item.execution_count }} executions</span>
-        <span>Last run: {% if item.last_run %}{{ item.last_run|timesince }} ago{% else %}never{% endif %}</span>
+        <span>{{ item.execution_count }} запусков</span>
+        <span>Последний: {% if item.last_run %}{{ item.last_run|timesince }} назад{% else %}никогда{% endif %}</span>
       </div>
       <div class="card-actions">
-        <a href="{% url 'workflow_detail' item.pk %}" class="btn btn-ghost btn-sm">Open</a>
+        <a href="{% url 'workflow_detail' item.pk %}" class="btn btn-ghost btn-sm">Открыть</a>
         <form method="post" action="{% url 'workflow_toggle' item.pk %}">
           {% csrf_token %}
           {% if item.is_active %}
-          <button type="submit" class="btn btn-ghost btn-sm">Disable</button>
+          <button type="submit" class="btn btn-ghost btn-sm">Отключить</button>
           {% else %}
-          <button type="submit" class="btn btn-ghost btn-sm">Enable</button>
+          <button type="submit" class="btn btn-ghost btn-sm">Включить</button>
           {% endif %}
         </form>
       </div>
@@ -40,19 +40,19 @@
   </div>
   {% else %}
   <div class="empty-state">
-    <p class="empty-title">No workflows yet</p>
-    <p class="empty-text">Create your first automation: a webhook, a condition, and an action.</p>
-    <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Create Workflow</a>
+    <p class="empty-title">Пока нет сценариев</p>
+    <p class="empty-text">Создайте первую автоматизацию: webhook, условие и действие.</p>
+    <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
   </div>
   {% endif %}
 </section>
 
 <section class="section">
-  <h2 class="section-title">Recent executions</h2>
+  <h2 class="section-title">Последние запуски</h2>
   {% if recent_executions %}
   <table class="table">
     <thead>
-      <tr><th>#</th><th>Workflow</th><th>Status</th><th>When</th><th>Duration</th></tr>
+      <tr><th>#</th><th>Сценарий</th><th>Статус</th><th>Когда</th><th>Длительность</th></tr>
     </thead>
     <tbody>
       {% for ex in recent_executions %}
@@ -60,14 +60,14 @@
         <td class="mono"><a href="{% url 'execution_detail' ex.pk %}">#{{ ex.pk }}</a></td>
         <td>{{ ex.workflow.name }}</td>
         <td>{% include 'executions/_status.html' with status=ex.status %}</td>
-        <td class="muted">{{ ex.started_at|timesince }} ago</td>
+        <td class="muted">{{ ex.started_at|timesince }} назад</td>
         <td class="mono muted">{{ ex.duration|default:'—' }}s</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <p class="empty-text">No executions yet. Send a POST request to a workflow webhook URL.</p>
+  <p class="empty-text">Запусков пока нет. Отправьте POST-запрос на webhook URL сценария.</p>
   {% endif %}
 </section>
 {% endblock %}

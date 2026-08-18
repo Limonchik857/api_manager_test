@@ -1,15 +1,22 @@
 {% extends 'base.html' %}
-{% block title %}Register — API Automation Studio{% endblock %}
+{% block title %}Регистрация — API Automation Studio{% endblock %}
 {% block content %}
-<div class="page-head"><h1>Create account</h1></div>
-<div class="panel panel-narrow">
-  <form method="post">
-    {% csrf_token %}
-    {% include 'workflows/_form_fields.html' with form=form %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Register</button>
+<div class="auth-wrap">
+  <div class="auth-card reveal in">
+    <div class="auth-head">
+      <div class="auth-badge mono">SIGN UP</div>
+      <h1>Создать аккаунт</h1>
+      <p class="auth-sub">Несколько секунд — и можно строить автоматизации</p>
     </div>
-    <p class="form-help">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
-  </form>
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      {% include 'workflows/_form_fields.html' with form=form %}
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Зарегистрироваться</button>
+    </form>
+    <div class="auth-links">
+      <span class="muted">Уже есть аккаунт?</span>
+      <a href="{% url 'login' %}">Войти</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

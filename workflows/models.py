@@ -55,6 +55,7 @@ class WorkflowNode(models.Model):
         CONDITION = 'condition', 'Condition'
         HTTP = 'http', 'HTTP Request'
         TELEGRAM = 'telegram', 'Telegram'
+        TRANSFORM = 'transform', 'JSON Transform'
 
     workflow = models.ForeignKey(
         Workflow,

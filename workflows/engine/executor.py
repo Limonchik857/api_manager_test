@@ -1,9 +1,10 @@
 import time
-import uuid
 
+from django.conf import settings
 from django.utils import timezone
 
 from executions.models import WorkflowExecution, NodeExecution
+from executions.services import truncate_data
 from workflows.models import Workflow, WorkflowNode
 from .nodes import get_handler
 from .nodes.condition import StopWorkflow
@@ -21,6 +22,10 @@ def slugify(name):
     return slug
 
 
+def _trim_context(context):
+    return {k: v for k, v in context.items() if not k.startswith('_')}
+
+
 class WorkflowExecutor:
 
     def run(self, workflow_id, input_data):
@@ -28,12 +33,15 @@ class WorkflowExecutor:
         nodes = list(workflow.nodes.all())
         execution = WorkflowExecution.objects.create(
             workflow=workflow,
-            input_data=input_data,
+            input_data=truncate_data(
+                input_data, settings.MAX_EXECUTION_INPUT, 'Входные данные'
+            )[0],
         )
 
         context = {
             'trigger': input_data or {},
             'execution_id': execution.pk,
+            '_user': workflow.owner,
         }
         if isinstance(input_data, dict):
             context.update(input_data)
@@ -51,9 +59,9 @@ class WorkflowExecutor:
             execution.duration = round(
                 (execution.finished_at - execution.started_at).total_seconds(), 3
             )
-            execution.output_data = {
-                k: v for k, v in context.items() if k != 'trigger'
-            }
+            execution.output_data, _ = truncate_data(
+                _trim_context(context), settings.MAX_EXECUTION_OUTPUT, 'Выходные данные'
+            )
             execution.save()
 
         return execution
@@ -65,7 +73,7 @@ class WorkflowExecutor:
             node=node,
             node_name=node.name or node.get_node_type_display(),
             status=NodeExecution.Status.SUCCESS,
-            input_data=context,
+            input_data=_trim_context(context),
         )
         try:
             handler = get_handler(node.node_type)
@@ -78,7 +86,13 @@ class WorkflowExecutor:
                     key = node.node_type
                 context[key] = output
 
-            node_exec.output_data = output
+            node_exec.output_data, truncated = truncate_data(
+                output, settings.MAX_NODE_OUTPUT, 'Выходные данные шага'
+            )
+            if truncated:
+                node_exec.error = node_exec.output_data.get('truncated_note', {}).get(
+                    'note', 'Выходные данные обрезаны'
+                )[:4000]
             node_exec.status = NodeExecution.Status.SUCCESS
         except StopWorkflow:
             node_exec.status = NodeExecution.Status.SUCCESS
@@ -107,5 +121,5 @@ class WorkflowExecutor:
                 node=node,
                 node_name=node.name or node.get_node_type_display(),
                 status=NodeExecution.Status.SKIPPED,
-                error=f'Previous condition did not match: {exc}',
+                error=f'Предыдущее условие не выполнено: {exc}',
             )
