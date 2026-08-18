@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Execution #{{ execution.pk }} — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Execution #{{ execution.pk }}</h1>
+  <a href="{% url 'workflow_detail' execution.workflow.pk %}" class="btn btn-ghost">{{ execution.workflow.name }}</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat">
+    <span class="stat-value">{% include 'executions/_status.html' with status=execution.status %}</span>
+    <span class="stat-label">Status</span>
+  </div>
+  <div class="stat">
+    <span class="stat-value mono">{{ execution.duration|default:'—' }}s</span>
+    <span class="stat-label">Duration</span>
+  </div>
+  <div class="stat">
+    <span class="stat-value mono">{{ execution.started_at|date:'d M Y H:i:s' }}</span>
+    <span class="stat-label">Started</span>
+  </div>
+</div>
+
+{% if execution.error %}
+<div class="alert alert-error">
+  <strong>Error:</strong> {{ execution.error }}
+</div>
+{% endif %}
+
+<section class="section">
+  <h2 class="section-title">Steps</h2>
+  <div class="pipe">
+    {% for ne in node_executions %}
+    <div class="pipe-node pipe-node-{{ ne.status }}">
+      <div class="pipe-node-head">
+        <span class="node-type">{{ ne.node.node_type|upper|default:'?' }}</span>
+        <span class="status status-{{ ne.status }}">{{ ne.status }}</span>
+      </div>
+      <span class="node-desc">{{ ne.node_name }}</span>
+      {% if ne.duration is not None %}
+      <span class="node-expr mono">{{ ne.duration }}s</span>
+      {% endif %}
+      {% if ne.error %}
+      <div class="node-error mono">{{ ne.error }}</div>
+      {% endif %}
+    </div>
+    {% if not forloop.last %}<div class="pipe-link mono">│<br>▼</div>{% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Input</h2>
+  <div class="panel">
+    <pre class="json-view mono">{{ execution.input_data|pprint }}</pre>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Node details</h2>
+  {% for ne in node_executions %}
+  <details class="panel node-details">
+    <summary class="mono">{{ ne.node_name }} — {{ ne.status }}{% if ne.duration is not None %} — {{ ne.duration }}s{% endif %}</summary>
+    {% if ne.output_data %}
+    <pre class="json-view mono">{{ ne.output_data|pprint }}</pre>
+    {% endif %}
+    {% if ne.error %}
+    <pre class="json-view mono json-view-error">{{ ne.error }}</pre>
+    {% endif %}
+  </details>
+  {% endfor %}
+</section>
+{% endblock %}

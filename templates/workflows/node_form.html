@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Configure step — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{% if node %}Edit{% else %}Add{% endif %} step</h1>
+  <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">← Back to workflow</a>
+</div>
+<div class="panel panel-narrow">
+  <form method="post">
+    {% csrf_token %}
+    {% include 'workflows/_form_fields.html' with form=form %}
+    <div class="form-actions">
+      <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Save step</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

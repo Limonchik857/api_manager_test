@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Create Workflow — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Create Workflow</h1>
+</div>
+<div class="panel panel-narrow">
+  <form method="post">
+    {% csrf_token %}
+    {% include 'workflows/_form_fields.html' with form=form %}
+    <div class="form-actions">
+      <a href="{% url 'workflows' %}" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

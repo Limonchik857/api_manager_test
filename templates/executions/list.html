@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Executions — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Executions</h1>
+</div>
+{% if executions %}
+<table class="table">
+  <thead>
+    <tr><th>ID</th><th>Workflow</th><th>Status</th><th>Date</th><th>Duration</th></tr>
+  </thead>
+  <tbody>
+    {% for ex in executions %}
+    <tr>
+      <td class="mono"><a href="{% url 'execution_detail' ex.pk %}">#{{ ex.pk }}</a></td>
+      <td>{{ ex.workflow.name }}</td>
+      <td>{% include 'executions/_status.html' with status=ex.status %}</td>
+      <td class="mono muted">{{ ex.started_at|date:'d M H:i' }}</td>
+      <td class="mono muted">{{ ex.duration|default:'—' }}s</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <p class="empty-title">No executions yet</p>
+  <p class="empty-text">Post JSON to a workflow webhook URL and the run will appear here.</p>
+  <a href="{% url 'workflows' %}" class="btn btn-primary">Open workflows</a>
+</div>
+{% endif %}
+{% endblock %}

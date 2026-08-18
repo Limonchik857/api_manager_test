@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}API Automation Studio — Automate your work without writing code{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <div class="hero-badge">WORKFLOWS FOR DEVELOPERS</div>
+    <h1 class="hero-title">Automate your work.<br><span class="hot">Without writing code.</span></h1>
+    <p class="hero-sub">Connect APIs, build workflows and automate repetitive tasks.<br>One <code>webhook</code> in — any number of actions out.</p>
+    <div class="hero-actions">
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Create free workflow</a>
+      <a href="{% url 'login' %}" class="btn btn-ghost btn-lg">Log in</a>
+    </div>
+  </div>
+
+  <div class="hero-demo reveal">
+    <div class="terminal">
+      <div class="term-bar">
+        <span class="term-dot"></span>
+        <span class="term-dot"></span>
+        <span class="term-dot"></span>
+        <span class="term-title">demo — live execution</span>
+      </div>
+      <div class="pipe pipe-live" style="border:none;border-radius:0;background:#060910;padding:18px 16px 10px;">
+        <div class="pipe-node demo-node" data-type="webhook">
+          <div class="pipe-node-head">
+            <span class="node-type"><span class="node-icon">⇄</span>Webhook</span>
+            <span class="demo-status mono" style="color:var(--hot)"></span>
+          </div>
+          <span class="node-expr">POST /webhooks/k7Xq9fA2/</span>
+        </div>
+        <div class="pipe-link mono"><span class="pipe-arrow">▼</span></div>
+        <div class="pipe-node demo-node" data-type="condition">
+          <div class="pipe-node-head">
+            <span class="node-type"><span class="node-icon">◇</span>Condition</span>
+            <span class="demo-status mono" style="color:var(--steel)"></span>
+          </div>
+          <span class="node-expr">amount &gt; 3000</span>
+        </div>
+        <div class="pipe-link mono"><span class="pipe-arrow">▼</span></div>
+        <div class="pipe-node demo-node" data-type="http">
+          <div class="pipe-node-head">
+            <span class="node-type"><span class="node-icon">↗</span>HTTP Request</span>
+            <span class="demo-status mono" style="color:var(--violet)"></span>
+          </div>
+          <span class="node-expr">POST → api.example.com/orders</span>
+        </div>
+        <div class="pipe-link mono"><span class="pipe-arrow">▼</span></div>
+        <div class="pipe-node demo-node" data-type="telegram">
+          <div class="pipe-node-head">
+            <span class="node-type"><span class="node-icon">✉</span>Telegram</span>
+            <span class="demo-status mono" style="color:var(--success)"></span>
+          </div>
+          <span class="node-expr">message → chat -1001…</span>
+        </div>
+      </div>
+      <div class="term-body" id="demo-term-body"></div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature reveal">
+    <div class="feature-code">trigger</div>
+    <h3>Webhook</h3>
+    <p>Every workflow gets a secret URL. Post JSON to it and the automation starts.</p>
+  </div>
+  <div class="feature reveal">
+    <div class="feature-code">logic</div>
+    <h3>Conditions</h3>
+    <p>IF / ELSE logic with variables from the incoming payload — no code required.</p>
+  </div>
+  <div class="feature reveal">
+    <div class="feature-code">action</div>
+    <h3>HTTP &amp; Telegram</h3>
+    <p>Send requests and messages, with {{ variables }} filled from the execution context.</p>
+  </div>
+  <div class="feature reveal">
+    <div class="feature-code">logs</div>
+    <h3>Full traces</h3>
+    <p>Every run is recorded step by step. You always see which step broke and why.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}API Automation Studio{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a href="{% url 'landing' %}" class="brand">
+      <span class="brand-mark">▚</span>
+      <span>Automation&nbsp;Studio</span>
+    </a>
+    {% if user.is_authenticated %}
+    <nav class="nav">
+      <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="{% url 'workflows' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name %}active{% endif %}">Workflows</a>
+      <a href="{% url 'executions' %}" class="nav-link {% if 'execution' in request.resolver_match.url_name %}active{% endif %}">Executions</a>
+    </nav>
+    <div class="topbar-user">
+      <span class="user-chip">{{ user.username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+      </form>
+    </div>
+    {% else %}
+    <nav class="nav">
+      <a href="{% url 'login' %}" class="nav-link">Log in</a>
+      <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Get started</a>
+    </nav>
+    {% endif %}
+  </div>
+</header>
+
+{% if messages %}
+<div class="container">
+  {% for message in messages %}
+  <div class="flash flash-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="container main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>API Automation Studio — connect APIs, build workflows.</span>
+    <span class="mono">v0.1.0</span>
+  </div>
+</footer>
+
+<script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% load pipeline_icons %}
+<div class="pipe">
+  {% for node in nodes %}
+  <div class="pipe-node" data-type="{{ node.node_type }}">
+    <div class="pipe-node-head">
+      <span class="node-type"><span class="node-icon">{{ node.node_type|pipe_icon }}</span>{{ node.node_type|upper }}</span>
+      <span class="node-desc">{{ node.name }}</span>
+    </div>
+    {% if node.node_type == 'condition' and node.configuration.conditions %}
+      <span class="node-expr">{{ node.configuration.conditions.0.left }} {{ node.configuration.conditions.0.operator }} {{ node.configuration.conditions.0.right }}</span>
+    {% elif node.node_type == 'http' %}
+      <span class="node-expr">{{ node.configuration.method|default:'GET' }} {{ node.configuration.url }}</span>
+    {% elif node.node_type == 'webhook' %}
+      <span class="node-expr">POST /webhooks/{{ workflow.webhook_token|slice:':8' }}…/</span>
+    {% endif %}
+  </div>
+  {% if not forloop.last %}<div class="pipe-link mono"><span class="pipe-arrow">│<br>▼</span></div>{% endif %}
+  {% endfor %}
+  {% if not nodes %}
+  <p class="empty-text">No steps yet.</p>
+  {% endif %}
+</div>

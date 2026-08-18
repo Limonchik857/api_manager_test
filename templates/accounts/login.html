@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Log in — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Log in</h1></div>
+<div class="panel panel-narrow">
+  <form method="post">
+    {% csrf_token %}
+    {% include 'workflows/_form_fields.html' with form=form %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Log in</button>
+    </div>
+    <p class="form-help">
+      <a href="{% url 'password_reset' %}">Forgot password?</a> ·
+      No account? <a href="{% url 'register' %}">Register</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

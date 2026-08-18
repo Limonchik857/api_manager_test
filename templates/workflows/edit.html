@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load pipeline_icons %}
+{% block title %}Edit {{ workflow.name }} — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ workflow.name }}</h1>
+    {% if workflow.is_active %}
+    <span class="status status-active">Active</span>
+    {% else %}
+    <span class="status status-inactive">Disabled</span>
+    {% endif %}
+  </div>
+  <div class="head-actions">
+    <a href="{% url 'workflow_detail' workflow.pk %}" class="btn btn-ghost">View</a>
+    <a href="{% url 'workflow_delete' workflow.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+</div>
+
+<div class="edit-grid">
+  <div class="edit-main">
+    <h2 class="section-title">Workflow</h2>
+    <div class="pipe">
+      {% for node in nodes %}
+      <div class="pipe-node" data-type="{{ node.node_type }}">
+        <div class="pipe-node-head">
+          <span class="node-type"><span class="node-icon">{{ node.node_type|pipe_icon }}</span>{{ node.node_type|upper }}</span>
+          <div class="pipe-node-actions">
+            <form method="post" action="{% url 'node_move' workflow.pk node.pk 'up' %}">
+              {% csrf_token %}<button type="submit" class="btn-icon" title="Move up">↑</button>
+            </form>
+            <form method="post" action="{% url 'node_move' workflow.pk node.pk 'down' %}">
+              {% csrf_token %}<button type="submit" class="btn-icon" title="Move down">↓</button>
+            </form>
+            <a href="{% url 'node_edit' workflow.pk node.pk %}" class="btn-icon" title="Edit">✎</a>
+            <form method="post" action="{% url 'node_delete' workflow.pk node.pk %}" onsubmit="return confirm('Delete this step?')">
+              {% csrf_token %}<button type="submit" class="btn-icon btn-icon-danger" title="Delete">×</button>
+            </form>
+          </div>
+        </div>
+        <span class="node-desc">{{ node.name }}</span>
+        {% if node.node_type == 'condition' and node.configuration.conditions %}
+          <span class="node-expr">{{ node.configuration.conditions.0.left }} {{ node.configuration.conditions.0.operator }} {{ node.configuration.conditions.0.right }}</span>
+        {% elif node.node_type == 'http' %}
+          <span class="node-expr">{{ node.configuration.method|default:'GET' }} {{ node.configuration.url }}</span>
+        {% elif node.node_type == 'telegram' %}
+          <span class="node-expr">→ chat {{ node.configuration.chat_id }}</span>
+        {% endif %}
+      </div>
+      {% if not forloop.last %}<div class="pipe-link mono"><span class="pipe-arrow">│<br>▼</span></div>{% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="add-step">
+      <span class="add-step-label">+ Add step</span>
+      <div class="add-step-buttons">
+        {% for value, label in node_type_labels.items %}
+        <a href="{% url 'node_add' workflow.pk value %}" class="btn btn-ghost btn-sm">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-side">
+    <div class="panel">
+      <h2 class="section-title">Settings</h2>
+      <form method="post">
+        {% csrf_token %}
+        {% include 'workflows/_form_fields.html' with form=form %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
