@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Подключения — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Подключения</h1>
+    <p class="page-sub">Одно подключение можно использовать в нескольких сценариях. Credentials шифруются и никогда не показываются.</p>
+  </div>
+  <a href="{% url 'connection_create' %}" class="btn btn-primary">+ Создать подключение</a>
+</div>
+
+{% if connections %}
+<div class="card-grid">
+  {% for connection in connections %}
+  <div class="card reveal">
+    <div class="card-head">
+      <h3 class="card-title">{{ connection.name }}</h3>
+      <span class="status status-active">{{ connection.get_connection_type_display }}</span>
+    </div>
+    <div class="card-stats mono">
+      <span>Создано: {{ connection.created_at|date:'d.m.Y' }}</span>
+      {% if connection.secret %}
+      <span>Token: {{ connection.secret.masked_value }}</span>
+      {% else %}
+      <span class="text-bad">нет credentials</span>
+      {% endif %}
+    </div>
+    <div class="card-actions">
+      <form method="post" action="{% url 'connection_delete' connection.pk %}" onsubmit="return confirm('Удалить подключение «{{ connection.name }}»? Сценарии, использующие его, перестанут работать.')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-sm">Удалить</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p class="empty-title">Подключений пока нет</p>
+  <p class="empty-text">Создайте Telegram-подключение — оно понадобится для уведомлений и шагов Telegram.</p>
+  <a href="{% url 'connection_create' %}" class="btn btn-primary">+ Создать подключение</a>
+</div>
+{% endif %}
+{% endblock %}

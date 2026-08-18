@@ -13,6 +13,7 @@
   </div>
   <div class="head-actions">
     <a href="{% url 'workflow_detail' workflow.pk %}" class="btn btn-ghost">Просмотр</a>
+    <a href="{% url 'workflow_export' workflow.pk %}" class="btn btn-ghost">Экспорт</a>
     <button type="button" class="btn btn-danger" data-modal-open="delete-workflow">Удалить</button>
   </div>
 </div>
@@ -88,6 +89,57 @@
           <button type="submit" class="btn btn-primary">Сохранить</button>
         </div>
       </form>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Расписание</h2>
+      <form method="post" action="{% url 'workflow_schedule_update' workflow.pk %}">
+        {% csrf_token %}
+        {% include 'workflows/_form_fields.html' with form=schedule_form %}
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Сохранить расписание</button>
+        </div>
+      </form>
+      {% if schedule.is_active %}
+      <div class="schedule-meta mono">
+        <div><span class="muted">Статус:</span> <span class="status status-active">● активно</span></div>
+        <div><span class="muted">Последний запуск:</span> {{ schedule.last_run_at|default:'—' }}</div>
+        <div><span class="muted">Следующий запуск:</span> {{ schedule.next_run_at|default:'—' }}</div>
+      </div>
+      {% else %}
+      <p class="form-help">Расписание выключено. Включите — и Celery Beat будет запускать сценарий автоматически.</p>
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Версии</h2>
+      {% if versions %}
+      <ul class="version-list">
+        {% for version in versions %}
+        <li class="version-item">
+          <span class="version-tag mono">v{{ version.version }}</span>
+          <span class="version-meta">
+            <span>{{ version.name_snapshot }}</span>
+            <span class="muted">{{ version.created_at|date:'d.m H:i' }} · {{ version.nodes_snapshot|length }} шагов</span>
+          </span>
+          {% if version.is_current %}
+          <span class="status status-active">текущая</span>
+          {% else %}
+          <span class="version-actions">
+            <a href="{% url 'workflow_versions' workflow.pk %}" class="btn btn-ghost btn-sm">История</a>
+            <form method="post" action="{% url 'workflow_version_restore' workflow.pk version.version %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-ghost btn-sm">Восстановить</button>
+            </form>
+          </span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="form-help">Версии пока не созданы. Изменения сценария автоматически сохраняются как версии.</p>
+      {% endif %}
+      <a href="{% url 'workflow_versions' workflow.pk %}" class="btn btn-ghost btn-sm">Все версии</a>
     </div>
   </div>
 </div>

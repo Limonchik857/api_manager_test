@@ -1,5 +1,9 @@
-{% if status == 'success' %}<span class="status status-success">успех</span>
+{% if status == 'queued' %}<span class="status status-queued">в очереди</span>
+{% elif status == 'running' %}<span class="status status-running">выполняется</span>
+{% elif status == 'retrying' %}<span class="status status-retrying">повтор</span>
+{% elif status == 'success' %}<span class="status status-success">успех</span>
 {% elif status == 'failed' %}<span class="status status-failed">ошибка</span>
 {% elif status == 'skipped' %}<span class="status status-skipped">пропущен</span>
+{% elif status == 'cancelled' %}<span class="status status-inactive">отменён</span>
 {% else %}<span class="status status-inactive">{{ status }}</span>
 {% endif %}

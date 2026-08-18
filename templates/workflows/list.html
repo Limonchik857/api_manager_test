@@ -2,8 +2,18 @@
 {% block title %}Сценарии — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>Сценарии</h1>
-  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
+  <div>
+    <h1>Сценарии</h1>
+    <p class="page-sub">Сценариев: {{ usage.workflows_count }} / {{ usage.workflows_limit }} (план {{ usage.plan|upper }})</p>
+  </div>
+  <div class="head-actions">
+    <form method="post" action="{% url 'workflow_import' %}" enctype="multipart/form-data" class="inline-form">
+      {% csrf_token %}
+      <input type="file" name="file" accept=".json" class="form-file" required>
+      <button type="submit" class="btn btn-ghost">Импорт</button>
+    </form>
+    <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
+  </div>
 </div>
 
 {% if workflows %}
@@ -33,7 +43,8 @@
 {% else %}
 <div class="empty-state">
   <p class="empty-title">Пока нет сценариев</p>
-  <p class="empty-text">Создайте первую автоматизацию.</p>
+  <p class="empty-text">Создайте свою автоматизацию или начните с готового шаблона.</p>
+  <a href="{% url 'templates' %}" class="btn btn-ghost">Готовые шаблоны</a>
   <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
 </div>
 {% endif %}

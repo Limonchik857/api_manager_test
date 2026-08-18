@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Новое подключение — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Новое подключение</h1>
+  <a href="{% url 'connections' %}" class="btn btn-ghost">← К подключениям</a>
+</div>
+<div class="panel panel-narrow">
+  <form method="post">
+    {% csrf_token %}
+    {% include 'workflows/_form_fields.html' with form=form %}
+    <div class="form-actions">
+      <a href="{% url 'connections' %}" class="btn btn-ghost">Отмена</a>
+      <button type="submit" class="btn btn-primary">Сохранить подключение</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

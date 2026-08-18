@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'vault',
+    'connections',
+    'usage',
+    'catalog',
+    'notifications',
     'workflows',
     'executions',
 ]
@@ -131,3 +135,24 @@ WEBHOOK_RATE_LIMIT_PER_MINUTE = env_int('WEBHOOK_RATE_LIMIT_PER_MINUTE', 100)
 
 # Лимит редиректов в HTTP Node.
 MAX_HTTP_REDIRECTS = env_int('MAX_HTTP_REDIRECTS', 5)
+
+# ── Celery / Redis ──────────────────────────────────────────
+
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/1')
+CELERY_TASK_ALWAYS_EAGER = env_bool('CELERY_TASK_ALWAYS_EAGER', False)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULE = {
+    'scheduler-tick': {
+        'task': 'workflows.tasks.scheduler_tick',
+        'schedule': 60.0,
+    },
+}
+
+# 'async' — выполнения уходят в Celery; 'sync' — выполняются inline (разработка без Redis).
+EXECUTION_MODE = os.environ.get('EXECUTION_MODE', 'async')
+
+# В тестах Celery работает в eager-режиме (без брокера).
+if 'test' in os.sys.argv or os.environ.get('CELERY_TASK_ALWAYS_EAGER', '').lower() in ('1', 'true'):
+    CELERY_TASK_ALWAYS_EAGER = True

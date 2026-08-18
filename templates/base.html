@@ -21,6 +21,8 @@
       <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Панель</a>
       <a href="{% url 'workflows' %}" class="nav-link {% if 'workflow' in request.resolver_match.url_name %}active{% endif %}">Сценарии</a>
       <a href="{% url 'executions' %}" class="nav-link {% if 'execution' in request.resolver_match.url_name %}active{% endif %}">Запуски</a>
+      <a href="{% url 'connections' %}" class="nav-link {% if 'connection' in request.resolver_match.url_name %}active{% endif %}">Подключения</a>
+      <a href="{% url 'templates' %}" class="nav-link {% if 'template' in request.resolver_match.url_name %}active{% endif %}">Шаблоны</a>
     </nav>
     <div class="topbar-user">
       <span class="user-chip">{{ user.username }}</span>
@@ -53,7 +55,7 @@
 <footer class="footer">
   <div class="container footer-inner">
     <span>API Automation Studio — соединяйте API и стройте автоматизации.</span>
-    <span class="mono">v0.2.0</span>
+    <span class="mono">v0.3.0</span>
   </div>
 </footer>
 

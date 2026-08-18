@@ -2,8 +2,17 @@
 {% block title %}Запуск #{{ execution.pk }} — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>Запуск #{{ execution.pk }}</h1>
-  <a href="{% url 'workflow_detail' execution.workflow.pk %}" class="btn btn-ghost">{{ execution.workflow.name }}</a>
+  <div>
+    <h1>Запуск #{{ execution.pk }}</h1>
+    <p class="page-sub">{{ execution.workflow.name }} · триггер: {{ execution.get_trigger_display }}</p>
+  </div>
+  <div class="head-actions">
+    <a href="{% url 'workflow_detail' execution.workflow.pk %}" class="btn btn-ghost">{{ execution.workflow.name }}</a>
+    <form method="post" action="{% url 'execution_replay' execution.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Replay entire execution</button>
+    </form>
+  </div>
 </div>
 
 <div class="stat-grid">
@@ -19,6 +28,12 @@
     <span class="stat-value mono">{{ execution.started_at|date:'d.m.Y H:i:s' }}</span>
     <span class="stat-label">Начало</span>
   </div>
+  {% if execution.finished_at %}
+  <div class="stat">
+    <span class="stat-value mono">{{ execution.finished_at|date:'H:i:s' }}</span>
+    <span class="stat-label">Конец</span>
+  </div>
+  {% endif %}
 </div>
 
 {% if execution.error %}
@@ -28,20 +43,35 @@
 {% endif %}
 
 <section class="section">
-  <h2 class="section-title">Шаги</h2>
+  <h2 class="section-title">Хронология</h2>
   <div class="pipe">
     {% for ne in node_executions %}
-    <div class="pipe-node pipe-node-{{ ne.status }}" data-type="{{ ne.node.node_type|default:'webhook' }}">
+    <div class="pipe-node pipe-node-{{ ne.status }}" data-type="{{ ne.node.node_type|default:'?' }}">
       <div class="pipe-node-head">
         <span class="node-type">{{ ne.node.node_type|upper|default:'?' }}</span>
-        <span class="status status-{{ ne.status }}">{{ ne.get_status_display }}</span>
+        <span class="status status-{{ ne.status }}">
+          {% if ne.status == 'retrying' %}повтор ({{ ne.attempt_number }}/{{ ne.max_attempts }}){% else %}{{ ne.get_status_display|lower }}{% endif %}
+        </span>
       </div>
       <span class="node-desc">{{ ne.node_name }}</span>
-      {% if ne.duration is not None %}
-      <span class="node-expr mono">{{ ne.duration }}s</span>
-      {% endif %}
+      <div class="debug-meta mono">
+        <span>{{ ne.started_at|date:'H:i:s' }}</span>
+        {% if ne.duration is not None %}<span>{{ ne.duration }}s</span>{% endif %}
+        {% if ne.output_data.status_code is not None and ne.status == 'success' %}
+        <span class="text-ok">HTTP {{ ne.output_data.status_code }}</span>
+        {% endif %}
+        {% if ne.status == 'retrying' and ne.next_retry_at %}
+        <span class="text-warn">следующая попытка: {{ ne.next_retry_at|timeuntil }}</span>
+        {% endif %}
+      </div>
       {% if ne.error %}
       <div class="node-error mono">{{ ne.error }}</div>
+      {% endif %}
+      {% if ne.status == 'failed' %}
+      <form method="post" action="{% url 'execution_retry_from_node' execution.pk ne.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-sm">Повторить с этого шага</button>
+      </form>
       {% endif %}
     </div>
     {% if not forloop.last %}<div class="pipe-link mono"><span class="pipe-arrow">│<br>▼</span></div>{% endif %}
@@ -57,15 +87,32 @@
 </section>
 
 <section class="section">
-  <h2 class="section-title">Детали шагов</h2>
+  <h2 class="section-title">Детали шагов (INPUT / OUTPUT / ERROR)</h2>
   {% for ne in node_executions %}
-  <details class="panel node-details">
-    <summary class="mono">{{ ne.node_name }} — {{ ne.get_status_display }}{% if ne.duration is not None %} — {{ ne.duration }}s{% endif %}</summary>
+  <details class="panel node-details" {% if ne.status == 'failed' %}open{% endif %}>
+    <summary class="mono">
+      {{ ne.node_name }}
+      — {{ ne.get_status_display|lower }}{% if ne.attempt_number > 1 %} · попытка {{ ne.attempt_number }}/{{ ne.max_attempts }}{% endif %}
+      {% if ne.duration is not None %} — {{ ne.duration }}s{% endif %}
+      {% if ne.output_data.status_code is not None %} — HTTP {{ ne.output_data.status_code }}{% endif %}
+    </summary>
+    {% if ne.input_data %}
+    <div class="debug-block">
+      <span class="debug-label">INPUT</span>
+      <pre class="json-view mono">{{ ne.input_data|pprint }}</pre>
+    </div>
+    {% endif %}
     {% if ne.output_data %}
-    <pre class="json-view mono">{{ ne.output_data|pprint }}</pre>
+    <div class="debug-block">
+      <span class="debug-label">OUTPUT</span>
+      <pre class="json-view mono">{{ ne.output_data|pprint }}</pre>
+    </div>
     {% endif %}
     {% if ne.error %}
-    <pre class="json-view mono json-view-error">{{ ne.error }}</pre>
+    <div class="debug-block">
+      <span class="debug-label">ERROR</span>
+      <pre class="json-view mono json-view-error">{{ ne.error }}</pre>
+    </div>
     {% endif %}
   </details>
   {% endfor %}

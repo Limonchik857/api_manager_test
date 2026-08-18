@@ -2,49 +2,87 @@
 {% block title %}Панель — API Automation Studio{% endblock %}
 {% block content %}
 <div class="page-head">
-  <h1>Панель</h1>
-  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
+  <div>
+    <h1>Панель</h1>
+    <p class="page-sub">Все автоматизации работают самостоятельно — сюда заходят, чтобы убедиться.</p>
+  </div>
+  <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать автоматизацию</a>
 </div>
 
+{% if cards %}
 <section class="section">
-  <h2 class="section-title">Сценарии</h2>
-  {% if workflows %}
+  <div class="health-strip">
+    <span class="health-pill health-ok"><span class="dot dot-ok"></span>{{ counts.healthy }} исправны</span>
+    <span class="health-pill health-warn"><span class="dot dot-warn"></span>{{ counts.warning }} требуют внимания</span>
+    <span class="health-pill health-bad"><span class="dot dot-bad"></span>{{ counts.failed }} сломаны</span>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-title">Мои автоматизации</h2>
   <div class="card-grid">
-    {% for item in workflows %}
+    {% for card in cards %}
     <div class="card reveal">
       <div class="card-head">
-        <h3 class="card-title">{{ item.name }}</h3>
-        {% if item.is_active %}
-        <span class="status status-active">Активен</span>
+        <h3 class="card-title">{{ card.workflow.name }}</h3>
+        {% if card.health == 'healthy' %}
+        <span class="status status-success">● исправна</span>
+        {% elif card.health == 'warning' %}
+        <span class="status status-warning">⚠ внимание</span>
         {% else %}
-        <span class="status status-inactive">Отключён</span>
+        <span class="status status-failed">🔴 сломана</span>
         {% endif %}
       </div>
       <div class="card-stats mono">
-        <span>{{ item.execution_count }} запусков</span>
-        <span>Последний: {% if item.last_run %}{{ item.last_run|timesince }} назад{% else %}никогда{% endif %}</span>
+        <span>Последний запуск: {% if card.last_run %}{{ card.last_run|timesince }} назад{% else %}никогда{% endif %}</span>
+        {% if card.next_run_at %}
+        <span>Следующий: через {{ card.next_run_at|timeuntil }}</span>
+        {% endif %}
+        {% if card.success_rate is not None %}
+        <span>Успешность: {{ card.success_rate }}%</span>
+        {% endif %}
+        {% if card.consecutive_failures > 0 %}
+        <span class="text-bad">Ошибок подряд: {{ card.consecutive_failures }}</span>
+        {% endif %}
       </div>
       <div class="card-actions">
-        <a href="{% url 'workflow_detail' item.pk %}" class="btn btn-ghost btn-sm">Открыть</a>
-        <form method="post" action="{% url 'workflow_toggle' item.pk %}">
-          {% csrf_token %}
-          {% if item.is_active %}
-          <button type="submit" class="btn btn-ghost btn-sm">Отключить</button>
-          {% else %}
-          <button type="submit" class="btn btn-ghost btn-sm">Включить</button>
-          {% endif %}
-        </form>
+        <a href="{% url 'workflow_detail' card.workflow.pk %}" class="btn btn-ghost btn-sm">Открыть</a>
+        {% if card.last_execution %}
+        <a href="{% url 'execution_detail' card.last_execution.pk %}" class="btn btn-ghost btn-sm">Последний запуск</a>
+        {% endif %}
       </div>
     </div>
     {% endfor %}
   </div>
-  {% else %}
+</section>
+{% else %}
+<section class="section">
   <div class="empty-state">
-    <p class="empty-title">Пока нет сценариев</p>
-    <p class="empty-text">Создайте первую автоматизацию: webhook, условие и действие.</p>
-    <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать сценарий</a>
+    <p class="empty-title">Создайте первую автоматизацию</p>
+    <p class="empty-text">Например: «Проверять API каждые 30 минут и уведомлять в Telegram, если он упал». Настройте один раз — дальше всё работает само.</p>
+    <a href="{% url 'templates' %}" class="btn btn-ghost">Готовые шаблоны</a>
+    <a href="{% url 'workflow_create' %}" class="btn btn-primary">+ Создать автоматизацию</a>
   </div>
-  {% endif %}
+</section>
+{% endif %}
+
+<section class="section">
+  <h2 class="section-title">Использование</h2>
+  <div class="panel">
+    <div class="usage-row">
+      <span class="usage-label">Запуски в этом месяце</span>
+      <span class="usage-value mono">{{ usage.executions }} / {{ usage.executions_limit }}</span>
+    </div>
+    <div class="usage-bar">
+      <div class="usage-fill" style="width: {% widthratio usage.executions usage.executions_limit 100 %}%"></div>
+    </div>
+    <div class="usage-row usage-row-sm">
+      <span class="muted">Сценариев: {{ usage.workflows_count }} / {{ usage.workflows_limit }}</span>
+      <span class="muted">Активных расписаний: {{ usage.active_schedules }}</span>
+      <span class="muted">Подключений: {{ usage.connections_count }}</span>
+      <span class="plan-chip">План: {{ usage.plan|upper }}</span>
+    </div>
+  </div>
 </section>
 
 <section class="section">
@@ -52,13 +90,14 @@
   {% if recent_executions %}
   <table class="table">
     <thead>
-      <tr><th>#</th><th>Сценарий</th><th>Статус</th><th>Когда</th><th>Длительность</th></tr>
+      <tr><th>#</th><th>Сценарий</th><th>Триггер</th><th>Статус</th><th>Когда</th><th>Длительность</th></tr>
     </thead>
     <tbody>
       {% for ex in recent_executions %}
       <tr>
         <td class="mono"><a href="{% url 'execution_detail' ex.pk %}">#{{ ex.pk }}</a></td>
         <td>{{ ex.workflow.name }}</td>
+        <td class="mono muted">{{ ex.get_trigger_display }}</td>
         <td>{% include 'executions/_status.html' with status=ex.status %}</td>
         <td class="muted">{{ ex.started_at|timesince }} назад</td>
         <td class="mono muted">{{ ex.duration|default:'—' }}s</td>

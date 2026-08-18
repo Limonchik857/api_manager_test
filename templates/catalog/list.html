@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Шаблоны — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Шаблоны сценариев</h1>
+    <p class="page-sub">Начните с готовой автоматизации: подключите Telegram, задайте URL — и включите расписание.</p>
+  </div>
+</div>
+
+<div class="card-grid">
+  {% for template in templates %}
+  <div class="card reveal">
+    <div class="card-head">
+      <h3 class="card-title">{{ template.name }}</h3>
+      <span class="status status-active">{{ template.get_category_display|default:template.category }}</span>
+    </div>
+    <p class="card-desc muted">{{ template.description }}</p>
+    <div class="card-stats mono">
+      <span>{{ template.definition.nodes|length }} шагов</span>
+    </div>
+    <div class="pipe">
+      {% for node in template.definition.nodes %}
+      <div class="pipe-node" data-type="{{ node.type }}">
+        <span class="node-type">{{ node.type|upper }}</span>
+        <span class="node-desc">{{ node.name }}</span>
+      </div>
+      {% if not forloop.last %}<div class="pipe-link mono"><span class="pipe-arrow">▼</span></div>{% endif %}
+      {% endfor %}
+    </div>
+    <div class="card-actions">
+      <form method="post" action="{% url 'use_template' template.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Использовать шаблон</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

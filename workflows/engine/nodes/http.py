@@ -5,6 +5,8 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 
+from ..retry import RetrySignal
+
 BLOCKED_HOSTS = {'localhost'}
 REDIRECT_STATUSES = (301, 302, 303, 307, 308)
 _RESOLVE_CACHE = {}
@@ -98,9 +100,6 @@ def execute_http(config, context, max_response_size=None, max_redirects=None):
     headers = render_value(config.get('headers') or {}, context)
     params = render_value(config.get('query_params') or {}, context)
     body = render_value(config.get('body') or '', context)
-    retry_config = config.get('retry') or {}
-    attempts = int(retry_config.get('max_attempts') or 1)
-    base_delay = float(retry_config.get('backoff_base') or 5)
 
     session = requests.Session()
 
@@ -123,7 +122,10 @@ def execute_http(config, context, max_response_size=None, max_redirects=None):
         elif method == 'DELETE' and body:
             kwargs['data'] = body
 
-        response = session.request(method, current_url, **kwargs)
+        try:
+            response = session.request(method, current_url, **kwargs)
+        except requests.RequestException as exc:
+            raise RetrySignal(f'Сетевая ошибка: {exc}')
 
         if response.status_code in REDIRECT_STATUSES:
             location = response.headers.get('Location')
@@ -132,12 +134,16 @@ def execute_http(config, context, max_response_size=None, max_redirects=None):
 
         chunks = []
         total = 0
-        for chunk in response.iter_content(chunk_size=64 * 1024):
-            total += len(chunk)
-            if total > max_response_size:
-                response.close()
-                raise MaxResponseExceeded(total)
-            chunks.append(chunk)
+        try:
+            for chunk in response.iter_content(chunk_size=64 * 1024):
+                total += len(chunk)
+                if total > max_response_size:
+                    response.close()
+                    raise MaxResponseExceeded(total)
+                chunks.append(chunk)
+        except requests.RequestException as exc:
+            response.close()
+            raise RetrySignal(f'Ошибка чтения ответа: {exc}')
         return response, None, b''.join(chunks)
 
     def finish(response, raw_body):
@@ -150,29 +156,22 @@ def execute_http(config, context, max_response_size=None, max_redirects=None):
             result['json'] = response.json()
         except ValueError:
             result['json'] = None
+        if response.status_code >= 500:
+            raise RetrySignal(
+                f'HTTP {response.status_code}: {response.reason or "Ошибка сервера"}'
+            )
         if response.status_code >= 400:
             raise ValueError(
                 f'HTTP {response.status_code}: {response.reason or "Запрос не выполнен"}'
             )
         return result
 
-    last_error = None
-    for attempt in range(1, attempts + 1):
-        try:
-            current_url = url
-            for _ in range(max_redirects + 1):
-                response, location, raw_body = request_once(current_url)
-                if location:
-                    current_url = urljoin(current_url, location)
-                    continue
-                result = finish(response, raw_body)
-                result['attempts'] = attempt
-                return result
-            raise ValueError('Слишком много редиректов')
-        except (MaxResponseExceeded, ValueError, requests.RequestException) as exc:
-            last_error = exc
-            if attempt < attempts:
-                delay = min(base_delay * (3 ** (attempt - 1)), 60)
-                time.sleep(delay)
-
-    raise ValueError(f'Запрос не выполнен за {attempts} попыт(ок): {last_error}')
+    current_url = url
+    for _ in range(max_redirects + 1):
+        response, location, raw_body = request_once(current_url)
+        if location:
+            current_url = urljoin(current_url, location)
+            continue
+        result = finish(response, raw_body)
+        return result
+    raise ValueError('Слишком много редиректов')

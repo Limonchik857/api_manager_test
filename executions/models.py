@@ -3,15 +3,33 @@ from django.db import models
 
 class WorkflowExecution(models.Model):
     class Status(models.TextChoices):
+        QUEUED = 'queued', 'QUEUED'
+        RUNNING = 'running', 'RUNNING'
+        RETRYING = 'retrying', 'RETRYING'
         SUCCESS = 'success', 'SUCCESS'
         FAILED = 'failed', 'FAILED'
+        CANCELLED = 'cancelled', 'CANCELLED'
+
+    class Trigger(models.TextChoices):
+        WEBHOOK = 'webhook', 'webhook'
+        TEST = 'test', 'test'
+        SCHEDULE = 'schedule', 'schedule'
+        REPLAY = 'replay', 'replay'
+        MANUAL = 'manual', 'manual'
 
     workflow = models.ForeignKey(
         'workflows.Workflow',
         on_delete=models.CASCADE,
         related_name='executions',
     )
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.SUCCESS)
+    trigger = models.CharField(
+        max_length=10,
+        choices=Trigger.choices,
+        default=Trigger.WEBHOOK,
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.QUEUED
+    )
     input_data = models.JSONField(default=dict, blank=True)
     output_data = models.JSONField(default=dict, blank=True)
     error = models.TextField(blank=True, default='')
@@ -28,6 +46,8 @@ class WorkflowExecution(models.Model):
 
 class NodeExecution(models.Model):
     class Status(models.TextChoices):
+        RUNNING = 'running', 'RUNNING'
+        RETRYING = 'retrying', 'RETRYING'
         SUCCESS = 'success', 'SUCCESS'
         FAILED = 'failed', 'FAILED'
         SKIPPED = 'skipped', 'SKIPPED'
@@ -52,6 +72,9 @@ class NodeExecution(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     duration = models.FloatField(null=True, blank=True)
+    attempt_number = models.PositiveIntegerField(default=1)
+    max_attempts = models.PositiveIntegerField(default=1)
+    next_retry_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['started_at', 'id']

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Версии — {{ workflow.name }} — API Automation Studio{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Версии: {{ workflow.name }}</h1>
+  <a href="{% url 'workflow_edit' workflow.pk %}" class="btn btn-ghost">← К сценарию</a>
+</div>
+
+{% if versions %}
+{% for version in versions %}
+<div class="panel">
+  <div class="version-row">
+    <span class="version-tag mono">v{{ version.version }}</span>
+    <span class="version-meta">
+      <strong>{{ version.name_snapshot }}</strong>
+      <span class="muted">{{ version.created_at|date:'d.m.Y H:i' }} · {{ version.nodes_snapshot|length }} шагов</span>
+    </span>
+    {% if version.is_current %}
+    <span class="status status-active">текущая</span>
+    {% else %}
+    <form method="post" action="{% url 'workflow_version_restore' workflow.pk version.version %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-sm">Восстановить</button>
+    </form>
+    {% endif %}
+  </div>
+  <details class="node-details">
+    <summary class="mono">Содержимое версии</summary>
+    <pre class="json-view mono">{{ version.nodes_snapshot|pprint }}</pre>
+  </details>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+  <p class="empty-title">Версий пока нет</p>
+  <p class="empty-text">Изменения сценария сохраняются автоматически.</p>
+</div>
+{% endif %}
+{% endblock %}
